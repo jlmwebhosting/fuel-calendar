@@ -170,8 +170,9 @@ class Calendar {
 		return ( ! $date) ? new \DateTime : $date;
 	}
 	
-	public static function same_day($date1, $date2)
+	public static function same_day($date1, $date2 = null)
 	{
+		! $date2 and $date2 = new \DateTime;
 		$date1->setTime(0,0,0);
 		$date2->setTime(0,0,0);
 		return $date1 == $date2;

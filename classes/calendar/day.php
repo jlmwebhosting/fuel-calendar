@@ -44,6 +44,7 @@ class Calendar_Day {
 	{
 		$classes = 'day '.strtolower($this->date_info['weekday']);
 		$this->has_events() and $classes .= ' has_events';
+		$this->is_today() and $classes .= ' today';
 		return $classes;
 	}
 	
@@ -54,7 +55,7 @@ class Calendar_Day {
 	
 	public function is_today()
 	{
-		return false;///TODO
+		return Calendar::same_day($this->_date);
 	}
 
 }
