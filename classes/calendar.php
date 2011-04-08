@@ -3,9 +3,7 @@
 namespace Calendar;
 
 /**
- * Calendar factory class.
- *
- * Class for backward compatibility.
+ * Calendar class.
  *
  * @package Calendar
  */
@@ -15,7 +13,6 @@ class Calendar {
 	public static $weekdays = array('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday');
 	public static $nav_uri = '';
 	protected static $_date;
-	protected $_week_start = 0;
 	protected $_events = array();
 	// TODO: protected $_force_show_next_month (and prev?)
 	
@@ -135,14 +132,18 @@ class Calendar {
 	
 	public static function prev_month_link($text = '<<')
 	{
-		$date_info = getdate(static::$_date->format('U'));
-		return \Html::anchor(static::$nav_uri.'/'.($date_info['mon']-1), $text);
+		$prev_month = clone static::$_date;
+		$prev_month->modify('-1 month');
+		$date_info = getdate($prev_month->format('U'));
+		return \Html::anchor(static::$nav_uri.'/'.$date_info['year'].'/'.$date_info['mon'], $text);
 	}
 	
 	public static function next_month_link($text = '>>')
 	{
-		$date_info = getdate(static::$_date->format('U'));
-		return \Html::anchor(static::$nav_uri.'/'.($date_info['mon']+1), $text);
+		$next_month = clone static::$_date;
+		$next_month->modify('+1 month');
+		$date_info = getdate($next_month->format('U'));
+		return \Html::anchor(static::$nav_uri.'/'.$date_info['year'].'/'.$date_info['mon'], $text);
 	}
 	
 	/**
@@ -155,11 +156,11 @@ class Calendar {
 		switch (count($args))
 		{
 			case 1:
-				if (is_string($args[0])) $date = DateTime::createFromFormat(strtotime($args[0]), 'U');
+				if (is_string($args[0])) $date = \DateTime::createFromFormat(strtotime($args[0]), 'U');
 				elseif (is_object($args[0]) and is_a($args[0], 'DateTime')) return $args[0];
 			break;
 			case 2:
-				if (is_string($args[0])) $date = DateTime::createFromFormat($args[0], $args[1]);
+				if (is_string($args[0])) $date = \DateTime::createFromFormat($args[0], $args[1]);
 				else
 					$date->setDate($args[0], $args[1]);
 			break;
