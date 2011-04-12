@@ -2,7 +2,7 @@
 .calendar {
 	border-collapse: separate;
 	border: 1px solid #9DABCE;
-	border-width: 0px 0px 1px 1px;
+	border-width: 0px 0px 1px 0px;
 	margin-left: 40px;
 	font-size: 20px;
 	float: left;

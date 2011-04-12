@@ -31,7 +31,7 @@ class Calendar {
 		{
 			$this->{$key} = $value;
 		}
-		else static::$_date = $this->parse_date(func_get_args());
+		else static::$_date = static::parse_date(func_get_args());
 		
 		return $this;
 	}
@@ -93,9 +93,9 @@ class Calendar {
 		return $view;
 	}
 	
-	public function set_date($year, $month = null, $day = null)
+	public function set_date($year = null, $month = null, $day = null)
 	{
-		static::$_date = static::parse_date($year, $month, $day);
+		static::$_date = is_null($month) ? new \DateTime : static::parse_date($year, $month, $day);
 		return $this;
 	}
 	
@@ -103,7 +103,7 @@ class Calendar {
 	{
 		if ($date) 
 		{
-			static::$_date = $date;
+			static::$_date = static::parse_date($date);
 			return $this;
 		}
 		return static::$_date;

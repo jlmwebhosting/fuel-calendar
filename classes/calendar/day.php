@@ -43,7 +43,7 @@ class Calendar_Day {
 		$classes = 'day '.strtolower($this->_date->format('l'));
 		$this->has_events() and $classes .= ' has_events';
 		$this->is_today() and $classes .= ' today';
-		$this->active_month and $classes .= ' active';
+		$classes .= $this->active_month ? ' active' : ' inactive';
 		return $classes;
 	}
 	
