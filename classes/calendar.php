@@ -52,8 +52,10 @@ class Calendar {
 		$date = static::$_date;
 		$active_month = clone $date;
 		$num_days = (int) $date->format('t');
+		$date->modify('first day of this month');
 		$days_offset_start = array_search($date->format('l'), static::$weekdays);
-		$date->modify('first day of this month')->modify('-'.$days_offset_start.' days');
+		//\Debug::dump($num_days, $days_offset_start, static::$_date, static::$weekdays, $date->format('l'));
+		$date->modify('-'.$days_offset_start.' days');
 		$num_rows = ceil(($num_days + $days_offset_start) / 7);
 		$days_offset_end = $num_rows * 7 - $num_days - $days_offset_start;
 		$rows = array();

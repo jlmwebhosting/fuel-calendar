@@ -9,7 +9,6 @@ class Calendar_Datasource_Google extends Calendar_Datasource {
 
 	public static function init($options)
 	{
-		// s
 	}
 	
 	/**
@@ -23,7 +22,7 @@ class Calendar_Datasource_Google extends Calendar_Datasource {
 
 	/**
 	 * @param   Calendar_Event  
-	 * @return  boolean         
+	 * @return  boolean     
 	 */
 	public abstract function add_event($event) {}
 
