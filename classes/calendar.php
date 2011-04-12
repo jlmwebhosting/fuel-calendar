@@ -13,14 +13,10 @@ class Calendar {
 	public static $weekdays = array('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday');
 	public static $nav_uri = '';
 	protected static $_date;
-	protected $_events = array();
-	// TODO: protected $_force_show_next_month (and prev?)
-	
+	protected $_events = array();	
 	
 	public static function factory($year=null, $month=null, $day=null)
 	{
-		//die('factory');
-		// TODO: use reflection class to pass arguments to constructor
 		return new static($year, $month, $day);
 	}
 
@@ -60,7 +56,6 @@ class Calendar {
 		$date->modify('first day of this month')->modify('-'.$days_offset_start.' days');
 		$num_rows = ceil(($num_days + $days_offset_start) / 7);
 		$days_offset_end = $num_rows * 7 - $num_days - $days_offset_start;
-		//$current_day = $num_days - $days_offset_start;
 		$rows = array();
 		for ($i=0; $i < $num_rows; $i++)
 		{
@@ -73,7 +68,6 @@ class Calendar {
 					'active_month' => ($date->format('n') == $active_month->format('n')),
 				));
 				$date->modify('+1 day');
-				//$current_day++;
 			}
 		}
 		
