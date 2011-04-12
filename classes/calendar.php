@@ -17,9 +17,11 @@ class Calendar {
 	// TODO: protected $_force_show_next_month (and prev?)
 	
 	
-	public static function factory($date = null)
+	public static function factory($year=null, $month=null, $day=null)
 	{
-		return new Calendar($date);
+		//die('factory');
+		// TODO: use reflection class to pass arguments to constructor
+		return new static($year, $month, $day);
 	}
 
 	public function __construct($options = null)
@@ -29,8 +31,7 @@ class Calendar {
 		{
 			$this->{$key} = $value;
 		}
-		
-		static::$_date = $this->parse_date(func_get_args());
+		else static::$_date = $this->parse_date(func_get_args());
 		
 		return $this;
 	}
@@ -52,13 +53,14 @@ class Calendar {
 	public function generate_month($view = null)
 	{
 		// Assemble the month into rows of Days
-		$date_info = getdate(static::$_date->format('U'));
-		$num_days = cal_days_in_month(CAL_GREGORIAN, $date_info['mon'], $date_info['year']);
-		$first_day = getdate(mktime(0,0,0, $date_info['mon'], $date_info['mday'], $date_info['year']));
-		$days_offset_start = array_search($first_day['weekday'], static::$weekdays);
+		$date = static::$_date;
+		$active_month = clone $date;
+		$num_days = (int) $date->format('t');
+		$days_offset_start = array_search($date->format('l'), static::$weekdays);
+		$date->modify('first day of this month')->modify('-'.$days_offset_start.' days');
 		$num_rows = ceil(($num_days + $days_offset_start) / 7);
 		$days_offset_end = $num_rows * 7 - $num_days - $days_offset_start;
-		$current_day = 1 - $days_offset_start;
+		//$current_day = $num_days - $days_offset_start;
 		$rows = array();
 		for ($i=0; $i < $num_rows; $i++)
 		{
@@ -66,26 +68,34 @@ class Calendar {
 			for ($d=0; $d < 7; $d++)
 			{
 				$rows[$i][$d] = false;
-				if ($current_day > 0 and $current_day <= $num_days)
-				{
-					$date = new \DateTime;
-					$date->setDate($date_info['year'], $date_info['mon'], $current_day);
-					$rows[$i][$d] = new Calendar_Day($date, array('events' => $this->get_events($date)));
-				}
-				$current_day++;
+				$rows[$i][$d] = new Calendar_Day(clone $date, array(
+					'events' => $this->get_events($date),
+					'active_month' => ($date->format('n') == $active_month->format('n')),
+				));
+				$date->modify('+1 day');
+				//$current_day++;
 			}
 		}
+		
+		// Reset back to the correct month
+		$date = $active_month;
+		static::date($date);
+		
 		// Create View
 		$view = $view ? $view : \Config::get('calendar.template_month', 'month_template');
-		$view = \View::factory($view, array('day_rows' => $rows, 'month' => $date_info['month'], 'year' => $date_info['year']));
+		$view = \View::factory($view, array(
+			'day_rows' => $rows, 
+			'month' => $date->format('F'), 
+			'year' => $date->format('Y'),
+			'date' => $date
+		), false);
 		
 		return $view;
 	}
 	
-	public function date_set($year, $month = null, $day = null)
+	public function set_date($year, $month = null, $day = null)
 	{
-		! static::$_date and static::$_date = new \DateTime;
-		static::$_date->setDate($year, is_null($month) ? 1 : $month, is_null($day) ? 1 : $day);
+		static::$_date = static::parse_date($year, $month, $day);
 		return $this;
 	}
 	
@@ -115,18 +125,18 @@ class Calendar {
 	public function add_event($date, $event)
 	{
 		// Make sure the event is an Event
-		! is_a($date, 'Calendar_Event') and $event = Calendar_Event::factory($event);
+		! is_a($event, 'Calendar_Event') and $event = Calendar_Event::factory($event);
 		
 		// Get more detailed info on the date
-		$date = is_string($date) ? $date = getdate(strtotime($date)) : getdate($date->format('U'));
-		$this->events[$date['year']][$date['mon']][$date['mday']][] = $event;
+		$date = static::parse_date($date);
+		$this->_events[$date->format('Y')][$date->format('n')][$date->format('j')][] = $event;
 		return $this;
 	}
 	
 	public function get_events($date)
 	{
-		$date = is_string($date) ? $date = getdate(strtotime($date)) : getdate($date->format('U'));
-		$events = @$this->_events[$date['year']][$date['mon']][$date['mday']];
+		$date = static::parse_date($date);
+		$events = @$this->_events[$date->format('Y')][$date->format('n')][$date->format('j')];
 		return $events ? $events : array();
 	}
 	
@@ -134,16 +144,14 @@ class Calendar {
 	{
 		$prev_month = clone static::$_date;
 		$prev_month->modify('-1 month');
-		$date_info = getdate($prev_month->format('U'));
-		return \Html::anchor(static::$nav_uri.'/'.$date_info['year'].'/'.$date_info['mon'], $text);
+		return \Html::anchor(static::$nav_uri.'/'.$prev_month->format('Y').'/'.$prev_month->format('m'), $text);
 	}
 	
 	public static function next_month_link($text = '>>')
 	{
 		$next_month = clone static::$_date;
 		$next_month->modify('+1 month');
-		$date_info = getdate($next_month->format('U'));
-		return \Html::anchor(static::$nav_uri.'/'.$date_info['year'].'/'.$date_info['mon'], $text);
+		return \Html::anchor(static::$nav_uri.'/'.$next_month->format('Y').'/'.$next_month->format('m'), $text);
 	}
 	
 	/**
@@ -162,10 +170,10 @@ class Calendar {
 			case 2:
 				if (is_string($args[0])) $date = \DateTime::createFromFormat($args[0], $args[1]);
 				else
-					$date->setDate($args[0], $args[1]);
+					$date->setDate((int) $args[0], (int) $args[1]);
 			break;
 			case 3:
-				$date->setDate($args[0], $args[1], $args[2]);
+				$date->setDate((int) $args[0], (int) $args[1], isset($args[2]) ? (int) $args[2] : 1);
 		}
 		return ( ! $date) ? new \DateTime : $date;
 	}

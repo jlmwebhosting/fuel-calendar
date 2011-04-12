@@ -9,4 +9,4 @@
 If you have feature requests, please add them as issues.
 
 ##Installation
-Add `calendar` to the packages array in app/config/config.php, and add `Calendar\\Calendar_Day` to the security whitelist further down in that file.
+Add `calendar` to the packages array in app/config/config.php.

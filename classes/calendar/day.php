@@ -5,10 +5,9 @@ namespace Calendar;
 class Calendar_Day {
 
 	protected $_date;
-	public $date_info;
 	public $content;
 	public $events = array();
-	protected $_weekday;
+	public $active_month = true;
 	
 	public function __construct($date, $options)
 	{
@@ -35,16 +34,16 @@ class Calendar_Day {
 		if ( ! $date) return $this->_date;
 		
 		$this->_date = Calendar::parse_date($date);
-		$this->date_info = getdate($this->_date->format('U'));
 		
 		return $this;
 	}
 	
 	public function get_classes()
 	{
-		$classes = 'day '.strtolower($this->date_info['weekday']);
+		$classes = 'day '.strtolower($this->_date->format('l'));
 		$this->has_events() and $classes .= ' has_events';
 		$this->is_today() and $classes .= ' today';
+		$this->active_month and $classes .= ' active';
 		return $classes;
 	}
 	
@@ -56,6 +55,11 @@ class Calendar_Day {
 	public function is_today()
 	{
 		return Calendar::same_day($this->_date);
+	}
+	
+	public function format($pattern)
+	{
+		return $this->_date->format($pattern);
 	}
 
 }
